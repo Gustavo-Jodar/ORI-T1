@@ -192,21 +192,16 @@ void buscar_reg(record *registro)
 
     char arquivo_name[9] = "Dados.bin";
 
-    arquivo = fopen(arquivo_name, "rb");
+    arquivo = fopen(arquivo_name, "rb+");
 
-    int contador = 1;
-    while (fread(registro, TAM_RECORD, 1, arquivo))
+    fseek(arquivo, (num_reg - 1) * (sizeof(record) - 1), SEEK_SET);
+    if (fread(registro, TAM_RECORD, 1, arquivo))
     {
-        if (contador == num_reg)
-        {
-            mostra_registro(registro);
+        mostra_registro(registro);
 
-            fclose(arquivo);
-            return;
-        }
-        contador++;
+        fclose(arquivo);
+        return;
     }
-
     fclose(arquivo);
     printf("Registro inexistente.\n");
 }
