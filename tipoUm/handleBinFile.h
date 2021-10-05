@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-
+#include <sys/stat.h>
+#include <sys/types.h>
 //Infos no arquivo:
+
 #define TAM_KEY 4
 #define TAM_LAST_NAME 11
 #define TAM_FIRST_NAME 11
@@ -13,6 +15,17 @@
 #define TAM_PHONE 16
 
 #define TAM_RECORD TAM_LAST_NAME + TAM_FIRST_NAME + TAM_ADDRESS + TAM_CITY + TAM_STATE + TAM_ZIP + TAM_PHONE + TAM_KEY
+
+#define TAM_INDICE TAM_FIRST_NAME + 5 //tamanho do indice = tamanho do primeiro nome + tamanho de int
+
+//struct para armazenar os indices (FIRST_NAME | posicao relativa no arquivo binario)
+typedef struct
+{
+    char first_n[TAM_FIRST_NAME]; //chave de busca ordenada por FIRST_NAME
+    int posicao;                  //posicao referente no arquivo binario
+
+} indice;
+
 //variáveis globais
 typedef struct
 {
@@ -27,70 +40,7 @@ typedef struct
 
 } record;
 
-//Funções
 //Lê o input de um novo registro
-int read_data(record *);
-//Imprime uma string
-void mostra_registro(record *);
-//Função que escreve record no arquivo
-void escreve_arquivo(record *);
-//função que lê um record do arquivo
-void ler_arquivo(record *);
-//função para buscar um registro
-void buscar_reg(record *);
-//buscar sequencial por key
-void buscar_key(record *);
-
-int main()
-{
-    record registro;
-    record *p_registro = &registro;
-    int opcao;
-    int continuar = 1;
-    while (opcao != 5)
-    {
-        printf("\n\n===========================================\n");
-        printf("1-Escrever registro\n");
-        printf("2-Ler todos os registros\n");
-        printf("3-Buscar registro por ordem de escrito\n");
-        printf("4-Buscar registro por key\n");
-        printf("5-Terminar\n");
-        printf("===========================================\n");
-        printf("Opção:");
-        scanf("%d", &opcao);
-
-        switch (opcao)
-        {
-        case 1:
-            while (continuar == 1)
-            {
-                read_data(p_registro);
-                escreve_arquivo(p_registro);
-                printf("\nAdicionar mais um registro? Digite 1 para continuar.\n");
-                printf("Continuar: ");
-                scanf("%d", &continuar);
-            }
-            break;
-        case 2:
-            ler_arquivo(p_registro);
-            break;
-        case 3:
-            buscar_reg(p_registro);
-            break;
-        case 4:
-            buscar_key(p_registro);
-            break;
-        case 5:
-            printf("Terminando...\n");
-            break;
-        default:
-            printf("Opção inválida! Digite novamente.\n");
-            break;
-        }
-    }
-}
-
-// função para ler os dados de um rgistro
 int read_data(record *registro)
 {
     printf("key:");
@@ -113,6 +63,18 @@ int read_data(record *registro)
     return 1;
 }
 
+//funcao que calcula tamanho do arquivo
+int tam_arq(char *filename)
+{
+    struct stat st;
+
+    if (stat(filename, &st) == 0)
+        return st.st_size;
+
+    return -1;
+}
+
+//Imprime um com de string
 void mostra_campo(char data[])
 {
     for (int i = 0; data[i] != '\0'; i++)
@@ -142,19 +104,24 @@ void mostra_registro(record *registro)
     mostra_campo(registro->phone);
 }
 
-void escreve_arquivo(record *registro)
+//Função que escreve record no arquivo
+//E retorna a posição que foi escrito o novo registro
+int escreve_arquivo(record *registro)
 {
     FILE *arquivo;
 
     char arquivo_name[9] = "Dados.bin";
 
-    arquivo = fopen(arquivo_name, "ab");
+    arquivo = fopen(arquivo_name, "ab+");
 
     fwrite(registro, TAM_RECORD, 1, arquivo);
 
     fclose(arquivo);
+
+    return (tam_arq(arquivo_name) / (sizeof(record) - 1)) - 1;
 }
 
+//função que lê todos os registros do arquivo
 void ler_arquivo(record *registro)
 {
     FILE *arquivo;
@@ -182,11 +149,14 @@ void ler_arquivo(record *registro)
     fclose(arquivo);
 }
 
-void buscar_reg(record *registro)
+//função para buscar um registro pela ordem de adicionado
+void buscar_reg(record *registro, int offSet, int use)
 {
-    int num_reg;
-    printf("Qual registro deseja buscar: ");
-    scanf("%d", &num_reg);
+    if (!use)
+    {
+        printf("Qual registro deseja buscar: ");
+        scanf("%d", &offSet);
+    }
 
     FILE *arquivo;
 
@@ -194,7 +164,7 @@ void buscar_reg(record *registro)
 
     arquivo = fopen(arquivo_name, "rb+");
 
-    fseek(arquivo, (num_reg - 1) * (sizeof(record) - 1), SEEK_SET);
+    fseek(arquivo, (offSet - 1) * (sizeof(record) - 1), SEEK_SET);
     if (fread(registro, TAM_RECORD, 1, arquivo))
     {
         mostra_registro(registro);
@@ -206,6 +176,7 @@ void buscar_reg(record *registro)
     printf("Registro inexistente.\n");
 }
 
+//buscar sequencial por key
 void buscar_key(record *registro)
 {
     int key;
@@ -235,4 +206,57 @@ void buscar_key(record *registro)
         fclose(arquivo);
         printf("Registro com key %d não encontrado!\n", key);
     }
+}
+
+//verifica se duas strings são iguais
+//reotna 1 caso seja, 0 caso não sejam
+int compara_strings(char n1[], char n2[])
+{
+    for (int i = 0; n1[i] != '\0'; i++)
+    {
+        if (n2[i] != n1[i])
+        {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+void busca_first_name(record *registro)
+{
+    char first_name[TAM_FIRST_NAME];
+    printf("Digite o nome: ");
+    scanf("%s", first_name);
+
+    indice *p_indice = malloc(sizeof(indice));
+
+    FILE *arquivoIndice;
+    char arquivo_indice[11] = "Indices.bin";
+    char arquivo_name[9] = "Dados.bin";
+
+    arquivoIndice = fopen(arquivo_indice, "rb+");
+
+    if (arquivoIndice != NULL)
+    {
+        int encontrado = 0;
+        while (fread(p_indice, TAM_INDICE, 1, arquivoIndice))
+        {
+            if (compara_strings(first_name, p_indice->first_n))
+            {
+                printf("posicao = %d\n", p_indice->posicao);
+
+                buscar_reg(registro, p_indice->posicao + 1, 1);
+
+                encontrado = 1;
+            }
+        }
+        if (!encontrado)
+            printf("Registro não encontrado!\n");
+        fclose(arquivoIndice);
+    }
+    else
+    {
+        printf("Arquivo inexistente!\n");
+    }
+    free(p_indice);
 }
