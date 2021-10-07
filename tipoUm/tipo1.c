@@ -2,12 +2,8 @@
 Integrantes:
 
 Gustavo Vieira Jodar - 769678
-Nayra Kaline dos Santos Vidal - ??????
-
-* Para compilar o programa:
-gcc tipo1.c handleIndice.c -o tipo1
-* Para executar:
-./tipo1
+Nayra Kaline dos Santos Vidal - 769847
+Sophia Schuster - ????????
 
 */
 

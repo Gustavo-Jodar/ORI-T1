@@ -1,3 +1,12 @@
+/*
+Integrantes:
+
+Gustavo Vieira Jodar - 769678
+Nayra Kaline dos Santos Vidal - 769847
+Sophia Schuster - ??????
+
+*/
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

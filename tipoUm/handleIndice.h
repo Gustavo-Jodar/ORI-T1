@@ -1,3 +1,12 @@
+/*
+Integrantes:
+
+Gustavo Vieira Jodar - 769678
+Nayra Kaline dos Santos Vidal - 769847
+Sophia Schuster - ??????
+
+*/
+
 #include "handleBinFile.h"
 
 //funcao que copia uma string em n2 para n1
