@@ -11,6 +11,7 @@ void copy_name(char n1[], char n2[])
     n1[i] = '\0';
 }
 
+//FUNÇÃO AINDA NÃO UTILIZADA !
 //funcao para comparar alfabeticamente dois nomes
 //retorna 1 se n1 vier antes
 //retorna 2 se n2 vier antes
@@ -28,6 +29,8 @@ int compara_nomes(char n1[], char n2[])
     return 1;
 }
 
+//FUNÇÃO AINDA NAO UTILIZADA!!
+//Função que acha a posição adequada para colocar uma string de forma ordenada em um array
 int findPlace(indice vet[], char chave[], int Tam)
 {
     int i = 0;
@@ -38,6 +41,7 @@ int findPlace(indice vet[], char chave[], int Tam)
     return i;
 }
 
+//função que printa a estrutura de indíce
 void printIndice(indice *i)
 {
     printf("=========\n");
@@ -45,6 +49,7 @@ void printIndice(indice *i)
     printf("Posicao: %d\n", i->posicao);
 }
 
+//função que lê o conteúdo do arquivo de índices
 void lerIndices()
 {
     indice *indice = malloc(sizeof(indice));
@@ -69,6 +74,7 @@ void lerIndices()
     fclose(arquivoIndice);
 }
 
+//função que adiciona um índice ao arquivo de índices
 void escreveIndice(char nome[], int posicao)
 {
     indice *p_i1 = malloc(sizeof(indice));

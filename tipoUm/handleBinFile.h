@@ -222,6 +222,8 @@ int compara_strings(char n1[], char n2[])
     return 1;
 }
 
+//função que busca sequencialmente um índice pelo primeiro nome no arquivo de índice
+//e dps retorna o registro que aquele índice referencia
 void busca_first_name(record *registro)
 {
     char first_name[TAM_FIRST_NAME];
