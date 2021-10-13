@@ -38,8 +38,7 @@ int main()
                 int posicao_arquivo_registrado;
                 read_data(p_registro);
                 posicao_arquivo_registrado = escreve_arquivo(p_registro);
-                printf("posicao_arquivo_registrado = %d", posicao_arquivo_registrado);
-                escreveIndice(p_registro->first_n, posicao_arquivo_registrado);
+                escreveIndiceOrdenado(p_registro->first_n, posicao_arquivo_registrado);
                 printf("\nAdicionar mais um registro? Digite 1 para continuar.\n");
                 printf("Continuar: ");
                 scanf("%d", &continuar);
@@ -62,6 +61,8 @@ int main()
             break;
         case 7:
             lerIndices();
+            //escreveIndiceOrdenado("az", 2);
+
             break;
         default:
             printf("Opção inválida! Digite novamente.\n");

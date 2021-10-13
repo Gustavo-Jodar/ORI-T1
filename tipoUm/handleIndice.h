@@ -38,18 +38,6 @@ int compara_nomes(char n1[], char n2[])
     return 1;
 }
 
-//FUNÇÃO AINDA NAO UTILIZADA!!
-//Função que acha a posição adequada para colocar uma string de forma ordenada em um array
-int findPlace(indice vet[], char chave[], int Tam)
-{
-    int i = 0;
-    while (compara_nomes(vet[i].first_n, chave) == 1 && i <= Tam)
-    {
-        i++;
-    }
-    return i;
-}
-
 //função que printa a estrutura de indíce
 void printIndice(indice *i)
 {
@@ -74,31 +62,113 @@ void lerIndices()
         {
             printIndice(indice);
         }
+        fclose(arquivoIndice);
     }
     else
     {
         printf("Arquivo inexistente!\n");
     }
-
-    fclose(arquivoIndice);
 }
 
-//função que adiciona um índice ao arquivo de índices
-void escreveIndice(char nome[], int posicao)
+//função que acha a posicao que deve ser inserido o novo indice
+int findPosition(char nome[])
 {
-    indice *p_i1 = malloc(sizeof(indice));
-    copy_name(p_i1->first_n, nome);
-    p_i1->posicao = posicao;
-
     FILE *arquivoIndice;
+    char arquivo_name[11] = "Indices.bin";
+    arquivoIndice = fopen(arquivo_name, "rb");
 
+    //indice auxiliar
+    indice *p_aux = malloc(sizeof(indice));
+
+    int posicao = 0;
+
+    //se aquivo existir
+    if (arquivoIndice != NULL)
+    {
+        //dtermina a posição a ser inserido
+        while (fread(p_aux, TAM_INDICE, 1, arquivoIndice))
+        {
+            if (compara_nomes(p_aux->first_n, nome) == 2)
+            {
+                fclose(arquivoIndice);
+                return posicao;
+            }
+            posicao++;
+        }
+        posicao++;
+        fclose(arquivoIndice);
+        free(p_aux);
+        return posicao;
+    }
+    else
+    {
+        free(p_aux);
+        return -1;
+    }
+}
+
+//função que avança um numero específico de registros (contando a partir do fim)
+void avancaRegistrosFrente(int qntd_avancar)
+{
+    //abrindo arquivo de indices e ajustando ponteiro para o final
+    char arquivo_name[11] = "Indices.bin";
+    FILE *arquivoIndice;
+    arquivoIndice = fopen(arquivo_name, "rb+");
+    fseek(arquivoIndice, 0, SEEK_END);
+
+    //indice auxiliar
+    indice *p_aux = malloc(sizeof(indice));
+
+    //avançando registros
+    for (int i = 0; i < qntd_avancar; i++)
+    {
+        fseek(arquivoIndice, -1 * sizeof(indice), SEEK_CUR);
+        fread(p_aux, TAM_INDICE, 1, arquivoIndice);
+        fwrite(p_aux, TAM_INDICE, 1, arquivoIndice);
+        fseek(arquivoIndice, -2 * sizeof(indice), SEEK_CUR);
+    }
+    fclose(arquivoIndice);
+    free(p_aux);
+}
+
+//funão que adiciona um indice de forma ordenada no arquivo
+//escolhendo o local a ser inserido e ajustando a posição dos demais
+void escreveIndiceOrdenado(char nome[], int posicao)
+{
     char arquivo_name[11] = "Indices.bin";
 
-    arquivoIndice = fopen(arquivo_name, "ab");
+    //novo indice
+    indice *p_novo = malloc(sizeof(indice));
+    copy_name(p_novo->first_n, nome);
+    p_novo->posicao = posicao;
 
-    fwrite(p_i1, TAM_INDICE, 1, arquivoIndice);
+    //posicao a ser inserido o novo indice
+    int i = findPosition(nome);
+
+    //arquivo nao existe OU está no último a ser inserido
+    if (i == -1 || tam_arq(arquivo_name) < i * sizeof(indice))
+    {
+        //criando arquivo para escrita
+        FILE *arquivoIndice;
+        arquivoIndice = fopen(arquivo_name, "ab");
+        //inserindo na última posição
+        fwrite(p_novo, TAM_INDICE, 1, arquivoIndice);
+        fclose(arquivoIndice);
+        free(p_novo);
+        return;
+    }
+
+    //arquivo existe e registro não está no final
+    //avançando registros em uma posicao para adicionar ordenadamente
+    int qntd_avancar = (tam_arq(arquivo_name) - (sizeof(indice) * i)) / sizeof(indice);
+    avancaRegistrosFrente(qntd_avancar);
+
+    //adicionando registro na posicao correta p/ ordenação
+    FILE *arquivoIndice;
+    arquivoIndice = fopen(arquivo_name, "rb+");
+    fseek(arquivoIndice, i * sizeof(indice), SEEK_SET);
+    fwrite(p_novo, TAM_INDICE, 1, arquivoIndice);
 
     fclose(arquivoIndice);
-
-    free(p_i1);
+    free(p_novo);
 }

@@ -149,13 +149,12 @@ void ler_arquivo(record *registro)
             mostra_registro(registro);
             contador++;
         }
+        fclose(arquivo);
     }
     else
     {
         printf("Arquivo inexistente!\n");
     }
-
-    fclose(arquivo);
 }
 
 //função para buscar um registro pela ordem de adicionado
