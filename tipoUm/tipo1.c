@@ -20,7 +20,7 @@ int main()
         printf("\n\n===========================================\n");
         printf("1-Escrever registro\n");
         printf("2-Ler todos os registros\n");
-        printf("3-Buscar registro por ordem de escrito\n");
+        printf("3-Buscar registro por numero de registro\n");
         printf("4-Buscar registro por key\n");
         printf("5-Buscar registro por first_name\n");
         printf("6-Terminar\n");

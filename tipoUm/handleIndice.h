@@ -37,6 +37,7 @@ int compara_nomes(char n1[], char n2[])
     return 1;
 }
 
+//função que verifica se duas strings são identicas
 int nomes_iguais(char n1[], char n2[])
 {
     for (int i = 0; n1[i] != '\0'; i++)
@@ -66,7 +67,6 @@ void lerIndices()
 
     if (arquivoIndice != NULL)
     {
-        fseek(arquivoIndice, 0, SEEK_SET);
         while (fread(indice, TAM_INDICE, 1, arquivoIndice))
         {
             printIndice(indice);
@@ -94,7 +94,7 @@ int findPosition(char nome[])
     //se aquivo existir
     if (arquivoIndice != NULL)
     {
-        //dtermina a posição a ser inserido
+        //determina a posição a ser inserido
         while (fread(p_aux, TAM_INDICE, 1, arquivoIndice))
         {
             if (compara_nomes(p_aux->first_n, nome) == 2)
@@ -256,7 +256,7 @@ void busca_bin_first_name(record *registro)
         {
             printf("Registro encontrado!\n\n");
 
-            buscar_reg(registro, p_indice->posicao + 1, 1);
+            buscar_reg(registro, p_indice->posicao, 1);
         }
         fclose(arquivoIndice);
     }

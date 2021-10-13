@@ -172,7 +172,7 @@ void buscar_reg(record *registro, int offSet, int use)
 
     arquivo = fopen(arquivo_name, "rb+");
 
-    fseek(arquivo, (offSet - 1) * (sizeof(record) - 1), SEEK_SET);
+    fseek(arquivo, offSet * (sizeof(record) - 1), SEEK_SET);
     if (fread(registro, TAM_RECORD, 1, arquivo))
     {
         mostra_registro(registro);
