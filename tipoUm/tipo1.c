@@ -54,7 +54,8 @@ int main()
             buscar_key(p_registro);
             break;
         case 5:
-            busca_first_name(p_registro);
+            //busca_first_name(p_registro);
+            busca_bin_first_name(p_registro);
             break;
         case 6:
             printf("Terminando...\n");

@@ -20,7 +20,6 @@ void copy_name(char n1[], char n2[])
     n1[i] = '\0';
 }
 
-//FUNÇÃO AINDA NÃO UTILIZADA !
 //funcao para comparar alfabeticamente dois nomes
 //retorna 1 se n1 vier antes
 //retorna 2 se n2 vier antes
@@ -34,6 +33,16 @@ int compara_nomes(char n1[], char n2[])
             return 2;
         if (n2[i] == '\0')
             return 2;
+    }
+    return 1;
+}
+
+int nomes_iguais(char n1[], char n2[])
+{
+    for (int i = 0; n1[i] != '\0'; i++)
+    {
+        if (n1[i] != n2[i])
+            return 0;
     }
     return 1;
 }
@@ -171,4 +180,89 @@ void escreveIndiceOrdenado(char nome[], int posicao)
 
     fclose(arquivoIndice);
     free(p_novo);
+}
+
+//retorna 2 se nomes forem iguais
+//1 se o nome procurado for maior
+//0 se o nome procurado for menor
+int verificaIndice(int i, char nome[], indice *p_aux)
+{
+    FILE *arquivoIndice;
+    arquivoIndice = fopen("Indices.bin", "rb+");
+    fseek(arquivoIndice, i * sizeof(indice), SEEK_SET);
+
+    fread(p_aux, TAM_INDICE, 1, arquivoIndice);
+    fclose(arquivoIndice);
+
+    if (nomes_iguais(p_aux->first_n, nome))
+    {
+        return 2;
+    }
+    else if (compara_nomes(nome, p_aux->first_n) == 1)
+    {
+        return 0;
+    }
+    else
+    {
+        return 1;
+    }
+}
+
+int buscaBinariaIndice(char nome[], indice *p_aux)
+{
+    int begin = 0;
+    int end = tam_arq("Indices.bin") / sizeof(indice);
+    while (begin <= end)
+    {
+
+        int i = (begin + end) / 2;               /* Calcula o meio do sub-vetor */
+        if (verificaIndice(i, nome, p_aux) == 2) // achou nome
+        {
+            return i;
+        }
+
+        if (verificaIndice(i, nome, p_aux) == 1) //nome está a direita
+        {
+            begin = i + 1;
+        }
+        else // nome está a esquerda
+        {
+            end = i;
+        }
+    }
+    return -1;
+}
+
+void busca_bin_first_name(record *registro)
+{
+    char first_name[TAM_FIRST_NAME];
+    printf("Digite o nome: ");
+    scanf("%s", first_name);
+
+    indice *p_indice = malloc(sizeof(indice));
+
+    FILE *arquivoIndice;
+    char arquivo_indice[11] = "Indices.bin";
+    char arquivo_name[9] = "Dados.bin";
+
+    arquivoIndice = fopen(arquivo_indice, "rb+");
+
+    if (arquivoIndice != NULL)
+    {
+        int i = buscaBinariaIndice(first_name, p_indice);
+        if (i == -1)
+            printf("Registro não encontrado!\n");
+        else
+        {
+            printf("Registro encontrado!\n\n");
+
+            buscar_reg(registro, p_indice->posicao + 1, 1);
+        }
+        fclose(arquivoIndice);
+    }
+    else
+    {
+        printf("Arquivo inexistente!\n");
+    }
+    free(p_indice);
 }

@@ -157,7 +157,7 @@ void ler_arquivo(record *registro)
     }
 }
 
-//função para buscar um registro pela ordem de adicionado
+//função para buscar um registro pela ordem no arquivo
 void buscar_reg(record *registro, int offSet, int use)
 {
     if (!use)
@@ -228,45 +228,4 @@ int compara_strings(char n1[], char n2[])
         }
     }
     return 1;
-}
-
-//função que busca sequencialmente um índice pelo primeiro nome no arquivo de índice
-//e dps retorna o registro que aquele índice referencia
-void busca_first_name(record *registro)
-{
-    char first_name[TAM_FIRST_NAME];
-    printf("Digite o nome: ");
-    scanf("%s", first_name);
-
-    indice *p_indice = malloc(sizeof(indice));
-
-    FILE *arquivoIndice;
-    char arquivo_indice[11] = "Indices.bin";
-    char arquivo_name[9] = "Dados.bin";
-
-    arquivoIndice = fopen(arquivo_indice, "rb+");
-
-    if (arquivoIndice != NULL)
-    {
-        int encontrado = 0;
-        while (fread(p_indice, TAM_INDICE, 1, arquivoIndice))
-        {
-            if (compara_strings(first_name, p_indice->first_n))
-            {
-                printf("posicao = %d\n", p_indice->posicao);
-
-                buscar_reg(registro, p_indice->posicao + 1, 1);
-
-                encontrado = 1;
-            }
-        }
-        if (!encontrado)
-            printf("Registro não encontrado!\n");
-        fclose(arquivoIndice);
-    }
-    else
-    {
-        printf("Arquivo inexistente!\n");
-    }
-    free(p_indice);
 }
