@@ -25,7 +25,7 @@ Sophia Schuster - ??????
 
 #define TAM_RECORD TAM_LAST_NAME + TAM_FIRST_NAME + TAM_ADDRESS + TAM_CITY + TAM_STATE + TAM_ZIP + TAM_PHONE + TAM_KEY
 
-#define TAM_INDICE TAM_FIRST_NAME + 5 //tamanho do indice = tamanho do primeiro nome + tamanho de int
+#define TAM_INDICE TAM_FIRST_NAME + TAM_KEY + 1 //tamanho do indice = tamanho do primeiro nome + tamanho de int
 
 //struct para armazenar os indices (FIRST_NAME | posicao relativa no arquivo binario)
 typedef struct
@@ -55,13 +55,17 @@ int read_data(record *registro)
     printf("key:");
     scanf("%d", &registro->key);
     printf("Last name:");
-    scanf("%s", registro->last_n);
+    getchar();
+    scanf("%[^\n]s", registro->last_n);
     printf("First name:");
-    scanf("%s", registro->first_n);
+    getchar();
+    scanf("%[^\n]s", registro->first_n);
+    getchar();
     printf("Address:");
-    scanf("%s", registro->address);
+    scanf("%[^\n]s", registro->address);
+    getchar();
     printf("City:");
-    scanf("%s", registro->city);
+    scanf("%[^\n]s", registro->city);
     printf("state:");
     scanf("%s", registro->state);
     printf("ZIP (CEP):");

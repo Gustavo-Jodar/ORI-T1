@@ -237,7 +237,9 @@ void busca_bin_first_name(record *registro)
 {
     char first_name[TAM_FIRST_NAME];
     printf("Digite o nome: ");
-    scanf("%s", first_name);
+    getchar();
+    scanf("%[^\n]s", first_name);
+    getchar();
 
     indice *p_indice = malloc(sizeof(indice));
 
