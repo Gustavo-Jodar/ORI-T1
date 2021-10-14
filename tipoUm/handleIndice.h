@@ -54,6 +54,7 @@ void printIndice(indice *i)
     printf("=========\n");
     printf("Nome: %s\n", i->first_n);
     printf("Posicao: %d\n", i->posicao);
+    printf("Deletado: %d\n", i->deletado);
 }
 
 //função que lê o conteúdo do arquivo de índices
@@ -150,6 +151,7 @@ void escreveIndiceOrdenado(char nome[], int posicao)
     indice *p_novo = malloc(sizeof(indice));
     copy_name(p_novo->first_n, nome);
     p_novo->posicao = posicao;
+    p_novo->deletado = 0;
 
     //posicao a ser inserido o novo indice
     int i = findPosition(nome);

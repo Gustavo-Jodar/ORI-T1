@@ -13,7 +13,7 @@ Sophia Schuster - ??????
 #include <sys/stat.h>
 #include <sys/types.h>
 //Infos no arquivo:
-
+#define TAM_DELETADO 4
 #define TAM_KEY 4
 #define TAM_LAST_NAME 11
 #define TAM_FIRST_NAME 11
@@ -23,13 +23,14 @@ Sophia Schuster - ??????
 #define TAM_ZIP 10
 #define TAM_PHONE 16
 
-#define TAM_RECORD TAM_LAST_NAME + TAM_FIRST_NAME + TAM_ADDRESS + TAM_CITY + TAM_STATE + TAM_ZIP + TAM_PHONE + TAM_KEY
+#define TAM_RECORD TAM_LAST_NAME + TAM_FIRST_NAME + TAM_ADDRESS + TAM_CITY + TAM_STATE + TAM_ZIP + TAM_PHONE + TAM_KEY + TAM_DELETADO
 
-#define TAM_INDICE TAM_FIRST_NAME + TAM_KEY + 1 //tamanho do indice = tamanho do primeiro nome + tamanho de int
+#define TAM_INDICE TAM_FIRST_NAME + TAM_KEY + TAM_DELETADO + 1 //tamanho do indice = tamanho do primeiro nome + tamanho de int
 
 //struct para armazenar os indices (FIRST_NAME | posicao relativa no arquivo binario)
 typedef struct
 {
+    int deletado;
     char first_n[TAM_FIRST_NAME]; //chave de busca ordenada por FIRST_NAME
     int posicao;                  //posicao referente no arquivo binario
 
@@ -38,6 +39,7 @@ typedef struct
 //variáveis globais
 typedef struct
 {
+    int deletado;
     int key;
     char last_n[TAM_LAST_NAME];
     char first_n[TAM_FIRST_NAME];
@@ -52,6 +54,7 @@ typedef struct
 //Lê o input de um novo registro
 int read_data(record *registro)
 {
+    registro->deletado = 0;
     printf("key:");
     scanf("%d", &registro->key);
     printf("Last name:");
@@ -115,6 +118,7 @@ void mostra_registro(record *registro)
     mostra_campo(registro->zip);
     printf("Phone: ");
     mostra_campo(registro->phone);
+    printf("Deletado: %d\n", registro->deletado);
 }
 
 //Função que escreve record no arquivo
