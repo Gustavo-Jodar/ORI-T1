@@ -3,18 +3,18 @@ Integrantes:
 
 Gustavo Vieira Jodar - 769678
 Nayra Kaline dos Santos Vidal - 769847
-Sophia Schuster - ????????
+Sophia Schuster - 760936
 
 */
 
-#include "handleIndice.h"
+#include "handleDelete.h"
 
 int main()
 {
     record registro;
     record *p_registro = &registro;
     int opcao, continuar;
-    while (opcao != 6)
+    while (opcao != 7)
     {
         continuar = 1;
         printf("\n\n===========================================\n");
@@ -23,9 +23,11 @@ int main()
         printf("3-Buscar registro por numero de registro\n");
         printf("4-Buscar registro por key\n");
         printf("5-Buscar registro por first_name\n");
-        printf("6-Terminar\n");
+        printf("6-Apagar registro por nome\n");
+        printf("7-Terminar\n");
         printf("===========================================\n");
-        printf("7-Ler Indice\n");
+        printf("8-Ler Arquivo de Indices\n");
+        printf("9-Ler Arquivo de Posicoes Livres\n");
         printf("===========================================\n");
         printf("Opção:");
         scanf("%d", &opcao);
@@ -58,12 +60,16 @@ int main()
             busca_bin_first_name(p_registro);
             break;
         case 6:
-            printf("Terminando...\n");
+            excluirLogicamenteRegistro();
             break;
         case 7:
+            printf("Terminando...\n");
+            break;
+        case 8:
             lerIndices();
-            //escreveIndiceOrdenado("az", 2);
-
+            break;
+        case 9:
+            lerExcluidos();
             break;
         default:
             printf("Opção inválida! Digite novamente.\n");

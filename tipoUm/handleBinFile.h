@@ -3,7 +3,7 @@ Integrantes:
 
 Gustavo Vieira Jodar - 769678
 Nayra Kaline dos Santos Vidal - 769847
-Sophia Schuster - ??????
+Sophia Schuster - 760936
 
 */
 
@@ -23,9 +23,11 @@ Sophia Schuster - ??????
 #define TAM_ZIP 10
 #define TAM_PHONE 16
 
-#define TAM_RECORD TAM_LAST_NAME + TAM_FIRST_NAME + TAM_ADDRESS + TAM_CITY + TAM_STATE + TAM_ZIP + TAM_PHONE + TAM_KEY + TAM_DELETADO
+#define TAM_RECORD TAM_LAST_NAME + TAM_FIRST_NAME + TAM_ADDRESS + TAM_CITY + TAM_STATE + TAM_ZIP + TAM_PHONE + TAM_KEY + TAM_DELETADO + 1
 
 #define TAM_INDICE TAM_FIRST_NAME + TAM_KEY + TAM_DELETADO + 1 //tamanho do indice = tamanho do primeiro nome + tamanho de int
+
+int getPosicaoLivre(void);
 
 //struct para armazenar os indices (FIRST_NAME | posicao relativa no arquivo binario)
 typedef struct
@@ -118,7 +120,6 @@ void mostra_registro(record *registro)
     mostra_campo(registro->zip);
     printf("Phone: ");
     mostra_campo(registro->phone);
-    printf("Deletado: %d\n", registro->deletado);
 }
 
 //Função que escreve record no arquivo
@@ -127,15 +128,33 @@ int escreve_arquivo(record *registro)
 {
     FILE *arquivo;
 
-    char arquivo_name[9] = "Dados.bin";
+    char arquivo_name[10] = "Dados.bin";
 
-    arquivo = fopen(arquivo_name, "ab+");
+    arquivo = fopen(arquivo_name, "rb+");
 
+    if (arquivo != NULL)
+    {
+        int posicao_livre = getPosicaoLivre();
+
+        if (posicao_livre != -1)
+        {
+            printf("\nESPAÇO LIVRE DETECTADO: %d\n", posicao_livre);
+            fseek(arquivo, posicao_livre * sizeof(record), SEEK_SET);
+            fwrite(registro, TAM_RECORD, 1, arquivo);
+            fclose(arquivo);
+            //retorna a posicao que ele foi inserido
+            return posicao_livre;
+        }
+    }
+    else
+
+        arquivo = fopen(arquivo_name, "ab");
+
+    fseek(arquivo, 0, SEEK_END);
     fwrite(registro, TAM_RECORD, 1, arquivo);
-
     fclose(arquivo);
-
-    return (tam_arq(arquivo_name) / (sizeof(record) - 1)) - 1;
+    //retorna a ultima posicao
+    return (tam_arq(arquivo_name) / sizeof(record)) - 1;
 }
 
 //função que lê todos os registros do arquivo
@@ -143,7 +162,7 @@ void ler_arquivo(record *registro)
 {
     FILE *arquivo;
 
-    char arquivo_name[9] = "Dados.bin";
+    char arquivo_name[10] = "Dados.bin";
 
     arquivo = fopen(arquivo_name, "rb");
 
@@ -153,9 +172,12 @@ void ler_arquivo(record *registro)
         fseek(arquivo, 0, SEEK_SET);
         while (fread(registro, TAM_RECORD, 1, arquivo))
         {
-            printf("============= %dº pessoa =========\n", contador);
-            mostra_registro(registro);
-            contador++;
+            if (!registro->deletado)
+            {
+                printf("============= %dº pessoa =========\n", contador);
+                mostra_registro(registro);
+                contador++;
+            }
         }
         fclose(arquivo);
     }
@@ -176,11 +198,11 @@ void buscar_reg(record *registro, int offSet, int use)
 
     FILE *arquivo;
 
-    char arquivo_name[9] = "Dados.bin";
+    char arquivo_name[10] = "Dados.bin";
 
     arquivo = fopen(arquivo_name, "rb+");
 
-    fseek(arquivo, offSet * (sizeof(record) - 1), SEEK_SET);
+    fseek(arquivo, offSet * sizeof(record), SEEK_SET);
     if (fread(registro, TAM_RECORD, 1, arquivo))
     {
         mostra_registro(registro);
@@ -201,7 +223,7 @@ void buscar_key(record *registro)
 
     FILE *arquivo;
 
-    char arquivo_name[9] = "Dados.bin";
+    char arquivo_name[10] = "Dados.bin";
 
     arquivo = fopen(arquivo_name, "rb");
 

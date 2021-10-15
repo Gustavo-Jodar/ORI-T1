@@ -3,7 +3,7 @@ Integrantes:
 
 Gustavo Vieira Jodar - 769678
 Nayra Kaline dos Santos Vidal - 769847
-Sophia Schuster - ??????
+Sophia Schuster - 760936
 
 */
 
@@ -60,17 +60,16 @@ void printIndice(indice *i)
 //função que lê o conteúdo do arquivo de índices
 void lerIndices()
 {
-    indice *indice = malloc(sizeof(indice));
-
     FILE *arquivoIndice;
-    char arquivo_name[11] = "Indices.bin";
+    char arquivo_name[12] = "Indices.bin";
     arquivoIndice = fopen(arquivo_name, "rb");
+    indice *p_indice = (indice *)malloc(sizeof(indice));
 
     if (arquivoIndice != NULL)
     {
-        while (fread(indice, TAM_INDICE, 1, arquivoIndice))
+        while (fread(p_indice, TAM_INDICE, 1, arquivoIndice))
         {
-            printIndice(indice);
+            printIndice(p_indice);
         }
         fclose(arquivoIndice);
     }
@@ -84,11 +83,11 @@ void lerIndices()
 int findPosition(char nome[])
 {
     FILE *arquivoIndice;
-    char arquivo_name[11] = "Indices.bin";
+    char arquivo_name[12] = "Indices.bin";
     arquivoIndice = fopen(arquivo_name, "rb");
 
     //indice auxiliar
-    indice *p_aux = malloc(sizeof(indice));
+    indice *p_aux = (indice *)malloc(sizeof(indice));
 
     int posicao = 0;
 
@@ -121,13 +120,13 @@ int findPosition(char nome[])
 void avancaRegistrosFrente(int qntd_avancar)
 {
     //abrindo arquivo de indices e ajustando ponteiro para o final
-    char arquivo_name[11] = "Indices.bin";
+    char arquivo_name[12] = "Indices.bin";
     FILE *arquivoIndice;
     arquivoIndice = fopen(arquivo_name, "rb+");
     fseek(arquivoIndice, 0, SEEK_END);
 
     //indice auxiliar
-    indice *p_aux = malloc(sizeof(indice));
+    indice *p_aux = (indice *)malloc(sizeof(indice));
 
     //avançando registros
     for (int i = 0; i < qntd_avancar; i++)
@@ -145,10 +144,10 @@ void avancaRegistrosFrente(int qntd_avancar)
 //escolhendo o local a ser inserido e ajustando a posição dos demais
 void escreveIndiceOrdenado(char nome[], int posicao)
 {
-    char arquivo_name[11] = "Indices.bin";
+    char arquivo_name[12] = "Indices.bin";
 
     //novo indice
-    indice *p_novo = malloc(sizeof(indice));
+    indice *p_novo = (indice *)malloc(sizeof(indice));
     copy_name(p_novo->first_n, nome);
     p_novo->posicao = posicao;
     p_novo->deletado = 0;
@@ -213,11 +212,16 @@ int verificaIndice(int i, char nome[], indice *p_aux)
 int buscaBinariaIndice(char nome[], indice *p_aux)
 {
     int begin = 0;
-    int end = tam_arq("Indices.bin") / sizeof(indice);
+    int end = (tam_arq("Indices.bin") / sizeof(indice)) - 1;
+    int i_passado = -1;
     while (begin <= end)
     {
+        int i = (begin + end) / 2; /* Calcula o meio do sub-vetor */
+        if (i_passado == i)
+            break;
+        else
+            i_passado = i;
 
-        int i = (begin + end) / 2;               /* Calcula o meio do sub-vetor */
         if (verificaIndice(i, nome, p_aux) == 2) // achou nome
         {
             return i;
@@ -243,11 +247,11 @@ void busca_bin_first_name(record *registro)
     scanf("%[^\n]s", first_name);
     getchar();
 
-    indice *p_indice = malloc(sizeof(indice));
+    indice *p_indice = (indice *)malloc(sizeof(indice));
 
     FILE *arquivoIndice;
-    char arquivo_indice[11] = "Indices.bin";
-    char arquivo_name[9] = "Dados.bin";
+    char arquivo_indice[12] = "Indices.bin";
+    char arquivo_name[10] = "Dados.bin";
 
     arquivoIndice = fopen(arquivo_indice, "rb+");
 
@@ -268,5 +272,28 @@ void busca_bin_first_name(record *registro)
     {
         printf("Arquivo inexistente!\n");
     }
+    free(p_indice);
+}
+
+//função retira indices marcados como excluídos do arquivo binário em um novo arquivo
+void refatoraArquivoIndice(int posicao_deletado)
+{
+    FILE *arquivoIndice;
+    arquivoIndice = fopen("Indices.bin", "rb+");
+
+    int numero_indices = tam_arq("Indices.bin") / sizeof(indice);
+    indice *p_indice = (indice *)malloc(numero_indices * sizeof(indice));
+
+    fread(p_indice, sizeof(indice), numero_indices, arquivoIndice);
+
+    for (int i = posicao_deletado; i < (numero_indices - 1); i++)
+    {
+        p_indice[i] = p_indice[i + 1];
+    }
+    fclose(arquivoIndice);
+
+    arquivoIndice = fopen("Indices.bin", "wb+");
+    fwrite(p_indice, (numero_indices - 1) * sizeof(indice), 1, arquivoIndice);
+    fclose(arquivoIndice);
     free(p_indice);
 }
