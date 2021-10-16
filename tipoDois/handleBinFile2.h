@@ -20,7 +20,7 @@ Sophia Schuster - 760936
 //variáveis globais
 typedef struct
 {
-    // int key, irei implementar futuramente;
+    int key;
     char last_n[TAM_MAX_CAMPO];        //sobrenome da pessoa
     char first_n[TAM_MAX_CAMPO];      //nome da pessoa
     char address[TAM_MAX_CAMPO];  //endereco da pessoa
@@ -43,7 +43,7 @@ void mostra_campo(char data[])
 //função para printar os registros
 void mostra_registro(record *registro)
 {
-    // printf("Key: %d\n", registro->key);
+    printf("Key: %d\n", registro->key);
     printf("Last name: ");
     mostra_campo(registro->last_n);
     printf("First name: ");
@@ -105,24 +105,23 @@ void read_data(FILE *arquivo)
 
     record registro; //estrutura para guardar o novo registro
 
+    printf("Key: ");
+    getchar();
+    scanf("%d", &registro.key);
+
     //le entradas, guarda tamanho do campo e soma no tamanho do registro:
     for (i = 0; i < QCAMPOS; i++) { 
         //obtendo campos e carregando na estrutura pessoa
         printf("%s: ", NomesCampos[i]);
-        // if (i==0) {
-        //     fflush(stdin);
-        //     scanf("%d", &registro.key);
-        //     fflush(stdin);
-        // }
-        // else{
         tam_campos[i] = obterCampo(&registro, i);
         tam_reg+= tam_campos[i];
-        // } irei implementar depois quando adicionar a chave
     }
+
     //gravando no arquivo tamanhos e os campos do registro
     fwrite(&tam_reg, sizeof(int), 1, arquivo); //grava tamanho do registro
 
-    // fwrite(&registro.key, sizeof(int), 1, arquivo);
+    fwrite(&registro.key, sizeof(int), 1, arquivo);
+
     fwrite(&tam_campos[0], sizeof(int), 1, arquivo);
     fwrite(&registro.last_n, tam_campos[0], 1, arquivo);
 
@@ -170,7 +169,7 @@ int recuperar_registro(FILE *arquivo, record *registro){
 
     if (fread(&tam_reg, sizeof(int), 1, arquivo)) { 
         //le o tamanho total do registro
-        // fread(&umaPessoa->key, sizeof(int), 1, arquivo);
+        fread(&registro->key,sizeof(int), 1, arquivo);
         while (i < tam_reg) {
             fread(&tam_campo, sizeof(int), 1, arquivo); //le o tamanho do campo
             switch(j) { //salva o campo do arquivo no record registro para podermos imprimir eles. 
