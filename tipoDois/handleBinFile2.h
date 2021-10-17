@@ -212,7 +212,7 @@ int recuperar_registro(FILE *arquivo, record *registro){
 }
 
 //função que lê todos os registros do arquivo
-void ler_arquivo()
+void ler_arquivo(int modo, int key, char *name)
 {
     record registro; //armazena cada registro lido
 
@@ -227,9 +227,25 @@ void ler_arquivo()
     {
         while (recuperar_registro(arquivo, &registro))
         {
-            printf("============= %dº pessoa =========\n", contador);
-            mostra_registro(&registro);
-            contador++;
+            if (modo == 0){
+                printf("============= %dº pessoa =========\n", contador);
+                mostra_registro(&registro);
+                contador++;
+            } //esse modo apenas printa todos os registros
+            else if (modo == 1){
+                if (key == registro.key){
+                    printf("============= %dº pessoa =========\n", contador);
+                    mostra_registro(&registro);
+                } //esse modo printa apenas o registro da key buscada.
+                contador++;
+            }
+            else if (modo == 2){
+                if (!strcmp(name,registro.first_n)){
+                    printf("============= %dº pessoa =========\n", contador);
+                    mostra_registro(&registro);
+                } //esse modo printa apenas o registro do primeiro nome buscado.
+                contador++;
+            }
         }
         fclose(arquivo);
     }

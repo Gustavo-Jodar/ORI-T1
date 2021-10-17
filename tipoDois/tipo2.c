@@ -13,15 +13,16 @@ int main()
 {
     record registro;
     record *p_registro = &registro;
-    int opcao, continuar;
+    int opcao, continuar, key;
+    char name[64];
     while (opcao != 5)
     {
         continuar = 1;
         printf("\n\n===========================================\n");
         printf("1-Escrever registro\n");
         printf("2-Ler todos os registros\n");
-        // printf("3-Buscar registro por key\n");
-        // printf("4-Buscar registro por first_name\n");
+        printf("3-Buscar registro por key\n");
+        printf("4-Buscar registro por first_name\n");
         printf("5-Terminar\n");
         printf("===========================================\n");
         printf("Opção:");
@@ -39,14 +40,17 @@ int main()
                 }
                 break;
             case 2:
-                ler_arquivo();
+                ler_arquivo(0,0,"undef");
                 break;
             case 3:
-                // buscar_key(p_registro);
+                printf("Key: ");
+                scanf("%d", &key);
+                ler_arquivo(1,key,"undef");
                 break;
             case 4:
-                //busca_first_name(p_registro);
-                // busca_bin_first_name(p_registro);
+                printf("First Name: ");
+                scanf("%s", name);
+                ler_arquivo(2,0,name);
                 break;
             case 5:
                 printf("Terminando...\n");
