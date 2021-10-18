@@ -12,7 +12,8 @@ Sophia Schuster - 760936
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-//Infos no arquivo:
+
+//tamanhos de cada campo do registro
 #define TAM_DELETADO 4
 #define TAM_KEY 4
 #define TAM_LAST_NAME 11
@@ -23,10 +24,13 @@ Sophia Schuster - 760936
 #define TAM_ZIP 10
 #define TAM_PHONE 16
 
+//tamanho total do registro
 #define TAM_RECORD TAM_LAST_NAME + TAM_FIRST_NAME + TAM_ADDRESS + TAM_CITY + TAM_STATE + TAM_ZIP + TAM_PHONE + TAM_KEY + TAM_DELETADO + 1
 
+//tamanho do indice
 #define TAM_INDICE TAM_FIRST_NAME + TAM_KEY + TAM_DELETADO + 1 //tamanho do indice = tamanho do primeiro nome + tamanho de int
 
+//função que retorna uma posicao livre armazenada no arquivo de posicoes livres ou -1 se nao tiver nenhuma
 int getPosicaoLivre(void);
 
 //struct para armazenar os indices (FIRST_NAME | posicao relativa no arquivo binario)
@@ -38,7 +42,7 @@ typedef struct
 
 } indice;
 
-//variáveis globais
+//struct do registro
 typedef struct
 {
     int deletado;
@@ -134,6 +138,7 @@ int escreve_arquivo(record *registro)
 
     if (arquivo != NULL)
     {
+        //verifica se existe uma posicao livre (algum registro excluído logicamente)
         int posicao_livre = getPosicaoLivre();
 
         if (posicao_livre != -1)
@@ -146,10 +151,11 @@ int escreve_arquivo(record *registro)
             return posicao_livre;
         }
     }
+    //se o arquivo ainda nao existe
     else
-
         arquivo = fopen(arquivo_name, "ab");
 
+    //adiciona na ultima posicao (nao tinha espaços vazios)
     fseek(arquivo, 0, SEEK_END);
     fwrite(registro, TAM_RECORD, 1, arquivo);
     fclose(arquivo);
@@ -187,9 +193,12 @@ void ler_arquivo(record *registro)
     }
 }
 
-//função para buscar um registro pela ordem no arquivo
+//função para buscar um registro pela sua posicao no arquivo
+//tambem utilizada em outras partes do programa para adquirir um registro por um offset
+//se a flag "use" estiver setada, ele usa o offset dado nos parâmetros, caso contrário o usuário que fornece esse offset
 void buscar_reg(record *registro, int offSet, int use)
 {
+
     if (!use)
     {
         printf("Qual registro deseja buscar: ");
@@ -214,7 +223,7 @@ void buscar_reg(record *registro, int offSet, int use)
     printf("Registro inexistente.\n");
 }
 
-//buscar sequencial por key
+//fuynção que busca sequencialmente por uma key
 void buscar_key(record *registro)
 {
     int key;
@@ -244,18 +253,4 @@ void buscar_key(record *registro)
         fclose(arquivo);
         printf("Registro com key %d não encontrado!\n", key);
     }
-}
-
-//verifica se duas strings são iguais
-//reotna 1 caso seja, 0 caso não sejam
-int compara_strings(char n1[], char n2[])
-{
-    for (int i = 0; n1[i] != '\0'; i++)
-    {
-        if (n2[i] != n1[i])
-        {
-            return 0;
-        }
-    }
-    return 1;
 }

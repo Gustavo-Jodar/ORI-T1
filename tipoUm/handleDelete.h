@@ -9,11 +9,11 @@ Sophia Schuster - 760936
 
 #include "handleIndice.h"
 
+//função que lê o conteudo do arquivo de posicoes vazias
 void lerExcluidos()
 {
     FILE *arquivoRemovidos;
     char arquivo_name[14] = "Removidos.bin";
-    //abre apenas para escrita no fim e se nao existir cria
     arquivoRemovidos = fopen(arquivo_name, "rb+");
 
     int *p_aux = (int *)malloc(sizeof(int));
@@ -34,7 +34,7 @@ void lerExcluidos()
 }
 
 //função que adiciona a posição de um registro vazio no arquivo de espaços vazios
-//E marca o índice que apontava para aquele registro no arquivo de indices como excluído
+//remove o índice que apontava para aquele registro no arquivo de indice
 void adicionaRegRemovido(int posicao, char nome[])
 {
     FILE *arquivoRemovidos;
@@ -43,7 +43,8 @@ void adicionaRegRemovido(int posicao, char nome[])
     int *p_aux = (int *)malloc(sizeof(int));
 
     arquivoRemovidos = fopen(arquivo_name, "rb+");
-    //abre apenas para escrita no fim e criando o arquivo
+
+    // se o arquivo ainda nao existe, abre apenas para escrita no fim e criando o arquivo
     if (arquivoRemovidos == NULL)
     {
         arquivoRemovidos = fopen(arquivo_name, "ab");
@@ -68,23 +69,14 @@ void adicionaRegRemovido(int posicao, char nome[])
     fclose(arquivoRemovidos);
 }
 
+//função que marca um registro como excluído, adiciona sua posicao (offset) no arquivo de posicoes vazias
+// e remove seu indice do arquivo de indices
 void marcaRegistroEIndiceComoExcluido(int posicao_indice, indice *p_indice)
 {
     FILE *arquivoIndice;
     FILE *arquivoDados;
     char arquivo_indice[12] = "Indices.bin";
     char arquivo_name[10] = "Dados.bin";
-
-    //MARCANDO O INDICE COMO DELETADO
-    arquivoIndice = fopen(arquivo_indice, "rb+");
-    fseek(arquivoIndice, posicao_indice * sizeof(indice), SEEK_SET);
-    fread(p_indice, TAM_INDICE, 1, arquivoIndice);
-    printf("Indice lido:\n");
-    printIndice(p_indice);
-    p_indice->deletado = 1;
-    fseek(arquivoIndice, -1 * sizeof(indice), SEEK_CUR);
-    fwrite(p_indice, TAM_INDICE, 1, arquivoIndice);
-    fclose(arquivoIndice);
 
     //adiciona a posição do registro deletado no arquivo de excluidos
     adicionaRegRemovido(p_indice->posicao, p_indice->first_n);
@@ -95,11 +87,14 @@ void marcaRegistroEIndiceComoExcluido(int posicao_indice, indice *p_indice)
     //marcando o registro como deletado
     record *p_record = (record *)malloc(sizeof(record));
     arquivoDados = fopen(arquivo_name, "rb+");
+
     fseek(arquivoDados, p_indice->posicao * sizeof(record), SEEK_SET);
     fread(p_record, TAM_RECORD, 1, arquivoDados);
+
     printf("\nO registro a ser deletado:\n");
     mostra_registro(p_record);
     printf("\nFoi excluído logicamente com sucesso!\n");
+
     p_record->deletado = 1;
     fseek(arquivoDados, -1 * sizeof(record), SEEK_CUR);
     fwrite(p_record, TAM_RECORD, 1, arquivoDados);
@@ -107,8 +102,10 @@ void marcaRegistroEIndiceComoExcluido(int posicao_indice, indice *p_indice)
     free(p_record);
 }
 
+//funçãoq que le o nome a ser excluído logicamente e chama a funação marcaRegistroEIndiceComoExcluido()
 void excluirLogicamenteRegistro()
 {
+    //lendo o nome a ser excluído
     char first_name[TAM_FIRST_NAME];
     printf("First name do registro a ser excluído: ");
     getchar();
@@ -119,7 +116,6 @@ void excluirLogicamenteRegistro()
     indice *p_indice = (indice *)malloc(sizeof(indice));
     int posi_indice = buscaBinariaIndice(first_name, p_indice);
 
-    printf("Posi_indice: %d\n", posi_indice);
     //nao achou o nome especificado no arquivo de indices
     if (posi_indice != -1)
     {
@@ -131,6 +127,7 @@ void excluirLogicamenteRegistro()
     }
 }
 
+//função que devolve uma posicao livre do arquivo de posicoes livres e remove a posicao dadas do mesmo (ela será reutilizada)
 int getPosicaoLivre()
 {
     FILE *arquivoRemovidos;
@@ -148,11 +145,13 @@ int getPosicaoLivre()
             posicao_livre = *p_posicao;
             free(p_posicao);
 
-            //cria um novo arquivo de registros vazios sem a primeira posicao
+            //adiciona as posicoes restantes em um vetor
             int qntd_registros_vazios_restantes = (tam_arq(arquivo_name) / sizeof(int)) - 1;
             int *p_posicoes_restantes = (int *)malloc(qntd_registros_vazios_restantes * sizeof(int));
             fread(p_posicoes_restantes, qntd_registros_vazios_restantes * sizeof(int), 1, arquivoRemovidos);
             fclose(arquivoRemovidos);
+
+            //cria um novo arquivo de registros vazios sem a primeira posicao (a que será reutilizada)
             arquivoRemovidos = fopen(arquivo_name, "wb+");
             fwrite(p_posicoes_restantes, qntd_registros_vazios_restantes * sizeof(int), 1, arquivoRemovidos);
             free(p_posicoes_restantes);
@@ -160,8 +159,10 @@ int getPosicaoLivre()
 
             return posicao_livre;
         }
+        //se o arquivo existir mas nao possui posicoes livres
         return -1;
     }
+    //se o arquivo ainda nao existe
     else
     {
         return -1;

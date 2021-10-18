@@ -57,7 +57,7 @@ void printIndice(indice *i)
     printf("Deletado: %d\n", i->deletado);
 }
 
-//função que lê o conteúdo do arquivo de índices
+//função que lê todo conteúdo do arquivo de índices
 void lerIndices()
 {
     FILE *arquivoIndice;
@@ -79,7 +79,7 @@ void lerIndices()
     }
 }
 
-//função que acha a posicao que deve ser inserido o novo indice
+//função que acha a posicao que deve ser inserido o novo indice ou -1 se o arquivo de indices ainda nao existir
 int findPosition(char nome[])
 {
     FILE *arquivoIndice;
@@ -94,7 +94,7 @@ int findPosition(char nome[])
     //se aquivo existir
     if (arquivoIndice != NULL)
     {
-        //determina a posição a ser inserido
+        //determina a posição a ser inserido buscando sequencialmente no arquivo de indices
         while (fread(p_aux, TAM_INDICE, 1, arquivoIndice))
         {
             if (compara_nomes(p_aux->first_n, nome) == 2)
@@ -117,6 +117,7 @@ int findPosition(char nome[])
 }
 
 //função que avança um numero específico de registros (contando a partir do fim)
+//utilizada na inserção ordenada para poder adicionar um indice sem que a ordem dos outros seja perdida
 void avancaRegistrosFrente(int qntd_avancar)
 {
     //abrindo arquivo de indices e ajustando ponteiro para o final
@@ -158,7 +159,7 @@ void escreveIndiceOrdenado(char nome[], int posicao)
     //arquivo nao existe OU está no último a ser inserido
     if (i == -1 || tam_arq(arquivo_name) < i * sizeof(indice))
     {
-        //criando arquivo para escrita
+        //criando arquivo para escrita ou abrindo um existente já com o ponteiro no final
         FILE *arquivoIndice;
         arquivoIndice = fopen(arquivo_name, "ab");
         //inserindo na última posição
@@ -169,8 +170,9 @@ void escreveIndiceOrdenado(char nome[], int posicao)
     }
 
     //arquivo existe e registro não está no final
-    //avançando registros em uma posicao para adicionar ordenadamente
+    //determina a quantidade de registros que devem ser deslocados para adiconar o novo indice
     int qntd_avancar = (tam_arq(arquivo_name) - (sizeof(indice) * i)) / sizeof(indice);
+    //avançando registros em uma posicao para adicionar ordenadamente
     avancaRegistrosFrente(qntd_avancar);
 
     //adicionando registro na posicao correta p/ ordenação
@@ -183,6 +185,8 @@ void escreveIndiceOrdenado(char nome[], int posicao)
     free(p_novo);
 }
 
+//colocando por refrência o conteudo do indice encontrado em p_aux
+//função utilizada na busca binária por nomes no arquivo de indice
 //retorna 2 se nomes forem iguais
 //1 se o nome procurado for maior
 //0 se o nome procurado for menor
@@ -195,20 +199,25 @@ int verificaIndice(int i, char nome[], indice *p_aux)
     fread(p_aux, TAM_INDICE, 1, arquivoIndice);
     fclose(arquivoIndice);
 
+    //se os nomes forem iguais
     if (nomes_iguais(p_aux->first_n, nome))
     {
         return 2;
     }
+    //se o nome procurado é menor do que o atual
     else if (compara_nomes(nome, p_aux->first_n) == 1)
     {
         return 0;
     }
+    //se o nome procurado é maior do que o atual
     else
     {
         return 1;
     }
 }
 
+//função que implemnta a busca binária no arquivo de indices, utilizando da verificaIndice()
+//colocando por refrência o conteudo do indice encontrado em p_indice
 int buscaBinariaIndice(char nome[], indice *p_aux)
 {
     int begin = 0;
@@ -217,6 +226,7 @@ int buscaBinariaIndice(char nome[], indice *p_aux)
     while (begin <= end)
     {
         int i = (begin + end) / 2; /* Calcula o meio do sub-vetor */
+        //garantia de nao ficar em loop infinito
         if (i_passado == i)
             break;
         else
@@ -236,11 +246,14 @@ int buscaBinariaIndice(char nome[], indice *p_aux)
             end = i;
         }
     }
+    //nome nao encontrado
     return -1;
 }
 
+//função que utiliza a busca binária para recuperar um registro cujo first_name foi dado pelo usuario
 void busca_bin_first_name(record *registro)
 {
+    //adquire o first_name
     char first_name[TAM_FIRST_NAME];
     printf("Digite o nome: ");
     getchar();
@@ -257,13 +270,15 @@ void busca_bin_first_name(record *registro)
 
     if (arquivoIndice != NULL)
     {
+        //acha a posicao em que se encontra o indice com o first_name
+        //o conteudo do indice encontrado é armazenado em p_indice
         int i = buscaBinariaIndice(first_name, p_indice);
         if (i == -1)
             printf("Registro não encontrado!\n");
         else
         {
             printf("Registro encontrado!\n\n");
-
+            //utiliza da função de busca por offset utilizando o offset contido no indice encontrado
             buscar_reg(registro, p_indice->posicao, 1);
         }
         fclose(arquivoIndice);
@@ -275,23 +290,27 @@ void busca_bin_first_name(record *registro)
     free(p_indice);
 }
 
-//função retira indices marcados como excluídos do arquivo binário em um novo arquivo
+//função retira uma posicao deletada do arquivo de indices
 void refatoraArquivoIndice(int posicao_deletado)
 {
     FILE *arquivoIndice;
     arquivoIndice = fopen("Indices.bin", "rb+");
 
+    //aloca espaco para ler todos os indices contidos no arquivo de indices
     int numero_indices = tam_arq("Indices.bin") / sizeof(indice);
     indice *p_indice = (indice *)malloc(numero_indices * sizeof(indice));
 
+    //lê todos os indices do arquivo de indices
     fread(p_indice, sizeof(indice), numero_indices, arquivoIndice);
 
+    //retira o indices deletado, escrevendo os seus subsequentes uma posicao a menos
     for (int i = posicao_deletado; i < (numero_indices - 1); i++)
     {
         p_indice[i] = p_indice[i + 1];
     }
     fclose(arquivoIndice);
 
+    //reescreve o arquivo com um indice a menos
     arquivoIndice = fopen("Indices.bin", "wb+");
     fwrite(p_indice, (numero_indices - 1) * sizeof(indice), 1, arquivoIndice);
     fclose(arquivoIndice);
