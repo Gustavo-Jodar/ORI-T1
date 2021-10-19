@@ -20,7 +20,7 @@ void ExcluiRegistro(char *name)
 
     if (arquivo != NULL)
     {
-        while (recuperar_registro(arquivo, &registro))
+        while (recuperar_registro(arquivo, &registro) && achou ==0)
         {
             if (!strcmp(name,registro.first_n)){
                 //procura pelo registro excluido para adiciona-lo ao arquivo de excluidos. 
