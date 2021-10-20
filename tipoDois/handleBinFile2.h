@@ -209,7 +209,7 @@ void escreve_arquivo(int substituir)
 
     int tam_reg_excluido = 0, achou = 0, keyParaSubstituir =0, posicao = 0;
     //variaveis auxiliares para caso seja necessario substituir uma linha de registro que ja foi apagado do arquivo pelo novo registro passado.
-    if (excluidos != NULL && substituir==0)
+    if (excluidos != NULL && substituir==0 && arquivo != NULL)
     while (recuperar_registro(excluidos, &registroExcluido) && achou == 0)
     {
         //passo por todos registros excluidos, salvo o tamanho e a chave deles.
@@ -231,16 +231,19 @@ void escreve_arquivo(int substituir)
             }
         }
     }
+    if (excluidos != NULL) fclose(excluidos);
     //caso nao possamos substituir o registro apenas adicionamos no final:
-    if (achou ==0){
+    if (arquivo!=NULL)
+    {
+        if (achou ==0){
         fclose(arquivo);
         arquivo = fopen(arquivo_name, "ab");
         //reabrimos o arquivo com ab para ele ser criado caso nao existisse. Nao fizemos isso antes pois é suposto que se existem excluidos existe um arquivo. 
 
         escreve_dados(arquivo, &registro, tam_reg, tam_campos);
+        }
+        fclose(arquivo);
     }
-    fclose(excluidos);
-    fclose(arquivo);
 }
 
 //função que lê todos os registros do arquivo
