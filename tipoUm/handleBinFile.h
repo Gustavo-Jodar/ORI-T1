@@ -57,12 +57,53 @@ typedef struct
 
 } record;
 
+//função que verifica se a KEY escolhida já existe no arquivo
+//retorna 1 se a key ainda nao existe
+//retorna 0 se ela já existe
+int verificaKey(int nova_key)
+{
+    FILE *arquivo;
+    char arquivo_name[10] = "Dados.bin";
+    arquivo = fopen(arquivo_name, "rb+");
+
+    record *registro_aux = (record *)malloc(sizeof(record));
+    int achou_igual = 0;
+
+    if (arquivo != NULL)
+    {
+        while (fread(registro_aux, TAM_RECORD, 1, arquivo) && !achou_igual)
+            if (registro_aux->key == nova_key && registro_aux->deletado != 1)
+                achou_igual = 1;
+
+        fclose(arquivo);
+        free(registro_aux);
+
+        if (!achou_igual)
+            return 1;
+        else
+        {
+            printf("Key já existente! Digite uma nova key.\n");
+            return 0;
+        }
+    }
+    else
+    {
+        free(registro_aux);
+        return 1;
+    }
+}
+
 //Lê o input de um novo registro
 int read_data(record *registro)
 {
     registro->deletado = 0;
-    printf("key:");
-    scanf("%d", &registro->key);
+    int key_unica = 0;
+    while (!key_unica)
+    {
+        printf("key:");
+        scanf("%d", &registro->key);
+        key_unica = verificaKey(registro->key);
+    }
     printf("Last name:");
     getchar();
     scanf("%[^\n]s", registro->last_n);
