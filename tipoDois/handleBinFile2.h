@@ -233,17 +233,14 @@ void escreve_arquivo(int substituir)
     }
     if (excluidos != NULL) fclose(excluidos);
     //caso nao possamos substituir o registro apenas adicionamos no final:
-    if (arquivo!=NULL)
-    {
         if (achou ==0){
-        fclose(arquivo);
+        if (arquivo!=NULL) fclose(arquivo);
         arquivo = fopen(arquivo_name, "ab");
         //reabrimos o arquivo com ab para ele ser criado caso nao existisse. Nao fizemos isso antes pois é suposto que se existem excluidos existe um arquivo. 
 
         escreve_dados(arquivo, &registro, tam_reg, tam_campos);
         }
         fclose(arquivo);
-    }
 }
 
 //função que lê todos os registros do arquivo
