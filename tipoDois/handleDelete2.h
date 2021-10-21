@@ -7,6 +7,13 @@ Sophia Schuster - 760936
 
 */
 
+//função retira uma posicao deletada do arquivo de indices
+void refatoraArquivoIndice(int posicao_deletado);
+
+//função que implemnta a busca binária no arquivo de indices, utilizando da verificaIndice()
+//colocando por refrência o conteudo do indice encontrado em p_indice
+int buscaBinariaIndice(char nome[], indice *p_aux);
+
 void ExcluiRegistro(char *name)
 {
     record registro; //armazena cada registro lido
@@ -20,20 +27,23 @@ void ExcluiRegistro(char *name)
 
     if (arquivo != NULL)
     {
-        while (recuperar_registro(arquivo, &registro) && achou ==0)
+        while (recuperar_registro(arquivo, &registro) && achou == 0)
         {
-            if (!strcmp(name,registro.first_n)){
-                //procura pelo registro excluido para adiciona-lo ao arquivo de excluidos. 
-                int tam_campos[QCAMPOS] = {strlen(registro.last_n), strlen(registro.first_n), strlen(registro.address), strlen(registro.city), strlen(registro.state), strlen(registro.zip),strlen(registro.phone)};
+            if (!strcmp(name, registro.first_n))
+            {
+                //procura pelo registro excluido para adiciona-lo ao arquivo de excluidos.
+                int tam_campos[QCAMPOS] = {strlen(registro.last_n), strlen(registro.first_n),
+                                           strlen(registro.address), strlen(registro.city), strlen(registro.state), strlen(registro.zip), strlen(registro.phone)};
                 int tam_reg = strlen(registro.last_n) + strlen(registro.first_n) + strlen(registro.address) + strlen(registro.city) + strlen(registro.state) + strlen(registro.zip) + strlen(registro.phone);
                 //gravando no arquivo de excluidos tamanhos e os campos do registro
                 escreve_dados(excluidos, &registro, tam_reg, tam_campos);
                 //Optei por salvar os registros inteiros no arquivo de excluídos, assim eu poderia aproveitar funções, lógica e structs.
                 printf("Registro apagado\n");
-                achou =1;
-            } 
+                achou = 1;
+            }
         }
-        if (achou == 0) printf("pessoa nao encontrada\n");
+        if (achou == 0)
+            printf("pessoa nao encontrada\n");
         fclose(arquivo);
         fclose(excluidos);
     }
@@ -43,7 +53,6 @@ void ExcluiRegistro(char *name)
     }
 }
 
-
 void excluirLogicamenteRegistro()
 {
     char first_name[64];
@@ -52,8 +61,14 @@ void excluirLogicamenteRegistro()
     scanf("%[^\n]s", first_name);
     getchar();
 
-    //procura nome daquele registro. 
-    ExcluiRegistro(first_name);
-    //como no tipo 2 nao é necessario usar indice eu utilizei a key para marcar como excluido. Supondo que o usuario nao adicionaria dois registros com a mesma key. 
+    //procura indice daquele registro no arquivo de indices
+    indice *p_indice = (indice *)malloc(sizeof(indice));
+    int posi_indice = buscaBinariaIndice(first_name, p_indice);
 
+    //procura nome daquele registro.
+    ExcluiRegistro(first_name);
+    //como no tipo 2 nao é necessario usar indice eu utilizei a key para marcar como excluido. Supondo que o usuario nao adicionaria dois registros com a mesma key.
+
+    //retira indice excluido do arquivo de indices
+    refatoraArquivoIndice(posi_indice);
 }
